@@ -21,7 +21,6 @@ void main() {
     vec2 pos = vUV - center;
     float dist = length(pos);
 
-    // Create multiple rings by using sin of distance and time
     float rings = sin(dist * slider0);
     float rings2 = sin(dist * 100.0f - atan(pos.y, pos.x) * 5.0f + (time * slider2 * 0.1f) * dist * 0.5f);
 
@@ -40,5 +39,4 @@ void main() {
     vec3 myOutputColor = mix(mix(baseColor, midColor, ringEffect), highlightColor, lighting * ringEffect * 0.8f);
 
     fragColor = vec4(myOutputColor, 1.0f);
-    // gl_FragColor = vec4(myOutputColor, 1.0f);
 }

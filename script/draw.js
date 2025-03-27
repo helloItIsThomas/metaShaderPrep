@@ -19,7 +19,7 @@ export function draw(instancePositionBuffer, alphaBuffer, totalTriangles) {
 
     const mousePosVec = new Point(sv.mousePos.x, sv.mousePos.y);
     const trianglePosVec = new Point(newPos.x + origin.x, newPos.y + origin.y);
-    // Calculate distance using Pythagorean theorem
+
     const distance = Math.sqrt(
       Math.pow(mousePosVec.x - trianglePosVec.x, 2) +
         Math.pow(mousePosVec.y - trianglePosVec.y, 2)
@@ -36,6 +36,7 @@ export function renderVanilla() {
   sv.time = performance.now() / 1000;
   sv.gl.clear(sv.gl.COLOR_BUFFER_BIT);
 
+  // updating the time uniform here
   sv.gl.uniform1f(sv.uniforms.time, sv.time);
 
   sv.gl.drawArrays(sv.gl.TRIANGLES, 0, 6);
