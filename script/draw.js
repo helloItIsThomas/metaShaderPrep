@@ -31,3 +31,13 @@ export function draw(instancePositionBuffer, alphaBuffer, totalTriangles) {
   instancePositionBuffer.update();
   alphaBuffer.update();
 }
+
+export function renderVanilla() {
+  sv.time = performance.now() / 1000;
+  sv.gl.clear(sv.gl.COLOR_BUFFER_BIT);
+
+  sv.gl.uniform1f(sv.uniforms.time, sv.time);
+
+  sv.gl.drawArrays(sv.gl.TRIANGLES, 0, 6);
+  requestAnimationFrame(renderVanilla);
+}

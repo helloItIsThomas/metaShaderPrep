@@ -1,17 +1,17 @@
-import {
-  Application,
-  Assets,
-  Buffer,
-  BufferUsage,
-  Container,
-  Geometry,
-  Mesh,
-  Shader,
-} from "pixi.js";
+// import {
+//   Application,
+//   Assets,
+//   Buffer,
+//   BufferUsage,
+//   Container,
+//   Geometry,
+//   Mesh,
+//   Shader,
+// } from "pixi.js";
 import { sv } from "./script/variables.js";
 import { loadShadersVanilla } from "./script/loadShaders.js";
 import { createProgram } from "./script/createProgram.js";
-import { draw } from "./script/draw.js";
+import { renderVanilla } from "./script/draw.js";
 
 async function mySetup(palette) {
   sv.sWidth = window.innerWidth;
@@ -20,117 +20,52 @@ async function mySetup(palette) {
   sv.canvas.width = sv.sWidth;
   sv.canvas.height = sv.sHeight;
   document.body.appendChild(sv.canvas);
+
   sv.gl = sv.canvas.getContext("webgl2");
   if (!sv.gl) {
     console.error("WebGL2 not supported");
     return;
   }
 
+  sv.gl.clearColor(0.0, 0.0, 1.0, 1.0); // Red color
+
   const { vertex, fragment } = await loadShadersVanilla();
-
   const program = createProgram(vertex, fragment);
+  sv.gl.useProgram(program);
 
-  console.log(program);
+  const cellW = sv.sWidth / 2;
+  const cellH = sv.sHeight / 2;
 
-  let totalTriangles = 1;
+  const quadVertices = new Float32Array([
+    -1, -1, 1, -1, 1, 1, 1, 1, -1, 1, -1, -1,
+  ]);
 
-  // need a buffer big enough to store x, y of totalTriangles
-  const instancePositionBuffer = new Buffer({
-    data: new Float32Array(totalTriangles * 2),
-    usage: BufferUsage.VERTEX | BufferUsage.COPY_DST,
-  });
+  const quadUVs = new Float32Array([0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0]);
 
-  const alphaBuffer = new Buffer({
-    data: new Float32Array(totalTriangles),
-    usage: BufferUsage.VERTEX | BufferUsage.COPY_DST,
-  });
+  const positionBuffer = sv.gl.createBuffer();
+  sv.gl.bindBuffer(sv.gl.ARRAY_BUFFER, positionBuffer);
+  sv.gl.bufferData(sv.gl.ARRAY_BUFFER, quadVertices, sv.gl.STATIC_DRAW);
 
-  const triangles = [];
+  const uvBuffer = sv.gl.createBuffer();
+  sv.gl.bindBuffer(sv.gl.ARRAY_BUFFER, uvBuffer);
+  sv.gl.bufferData(sv.gl.ARRAY_BUFFER, quadUVs, sv.gl.STATIC_DRAW);
 
-  for (let i = 0; i < totalTriangles; i++) {
-    triangles[i] = {
-      x: sv.sWidth * 0.0,
-      y: sv.sHeight * 0.0,
-      speed: 1 + Math.random() * 2,
-    };
-  }
+  const aPositionLoc = sv.gl.getAttribLocation(program, "aPosition");
+  sv.gl.enableVertexAttribArray(aPositionLoc);
+  sv.gl.bindBuffer(sv.gl.ARRAY_BUFFER, positionBuffer);
+  sv.gl.vertexAttribPointer(aPositionLoc, 2, sv.gl.FLOAT, false, 0, 0);
 
-  const cellW = sv.sWidth;
-  const cellH = sv.sHeight;
-  const geometry = new Geometry({
-    topology: "triangle-strip",
-    instanceCount: totalTriangles,
-    attributes: {
-      aPosition: [
-        0.0,
-        0.0,
-        cellW,
-        0.0,
-        cellW,
-        cellH,
-        cellW,
-        cellH,
-        0.0,
-        cellH,
-        0.0,
-        0.0,
-      ],
-      aUV: [0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0],
-      aPositionOffset: {
-        buffer: instancePositionBuffer,
-        instance: true,
-      },
-      aAlpha: {
-        buffer: alphaBuffer,
-        instance: true,
-      },
-    },
-  });
+  const aUVLoc = sv.gl.getAttribLocation(program, "aUV");
+  sv.gl.enableVertexAttribArray(aUVLoc);
+  sv.gl.bindBuffer(sv.gl.ARRAY_BUFFER, uvBuffer);
+  sv.gl.vertexAttribPointer(aUVLoc, 2, sv.gl.FLOAT, false, 0, 0);
 
-  const gl = { vertex, fragment };
+  sv.uniforms = {
+    time: sv.gl.getUniformLocation(program, "time"),
+    slider0: sv.gl.getUniformLocation(program, "slider0"),
+  };
 
-  // const shader = Shader.from({
-  // gl,
-  // resources: {
-  // waveUniforms: {
-  // slider0: { value: 1.0, type: "f32" },
-  // slider1: { value: 1.0, type: "f32" },
-  // slider2: { value: 1.0, type: "f32" },
-  // time: { value: sv.pApp.ticker.lastTime, type: "f32" },
-  // col1: {
-  // value: palette[0].map((value) => value / 255),
-  // type: "vec3<f32>",
-  // },
-  // col2: {
-  // value: palette[1].map((value) => value / 255),
-  // type: "vec3<f32>",
-  // },
-  // col3: {
-  // value: palette[2].map((value) => value / 255),
-  // type: "vec3<f32>",
-  // },
-  // },
-  // },
-  // });
-
-  // sv.triangleMesh = new Mesh({
-  // geometry,
-  // shader,
-  // });
-
-  const container = new Container();
-  container.width = sv.sWidth;
-  container.height = sv.sHeight;
-  container.filterArea = { width: sv.sWidth, height: sv.sHeight };
-
-  // container.addChild(sv.triangleMesh);
-
-  // sv.pApp.ticker.add(() => {
-  // const time = sv.pApp.ticker.lastTime * 0.01;
-  // sv.triangleMesh.shader.resources.waveUniforms.uniforms.time = time;
-
-  // draw(instancePositionBuffer, alphaBuffer, totalTriangles);
-  // });
+  renderVanilla();
 }
 
 const sliders = document.querySelectorAll(".slider");
@@ -143,11 +78,11 @@ function updateSlider(event) {
   const slider = event.target;
   const value = slider.value;
   if (slider.id === "slider0") {
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.slider0 = value;
+    sv.gl.uniform1f(uniforms[slider0], value);
   } else if (slider.id === "slider1") {
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.slider1 = value;
+    sv.gl.uniform1f(uniforms[slider1], value);
   } else if (slider.id === "slider2") {
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.slider2 = value;
+    sv.gl.uniform1f(uniforms[slider2], value);
   }
 }
 
@@ -159,32 +94,4 @@ window.addEventListener("load", () => {
     let palette = colorThief.getPalette(image, 3);
     mySetup(palette);
   });
-});
-
-document.getElementById("imageUpload").addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const image = new Image();
-  image.src = URL.createObjectURL(file);
-  image.onload = () => {
-    const palette = new ColorThief().getPalette(image, 3);
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.col1 =
-      palette[0].map((value) => value / 255);
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.col2 =
-      palette[1].map((value) => value / 255);
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.col3 =
-      palette[2].map((value) => value / 255);
-
-    palette.forEach((color) => {
-      console.log(color.map((value) => value / 255));
-    });
-  };
-});
-
-window.addEventListener("mousemove", (event) => {
-  sv.prevMousePos.x = sv.mousePos.x;
-  sv.prevMousePos.y = sv.mousePos.y;
-  sv.mousePos.x = event.clientX;
-  sv.mousePos.y = event.clientY;
 });
