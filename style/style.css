@@ -1,0 +1,62 @@
+/* BRAND BLUE COLOR = #55d4ff */
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+}
+body {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+#defaultCanvas0 {
+  display: none;
+}
+
+#uploadBox {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#controls {
+  padding: 5px;
+  position: relative;
+  width: 90%;
+  height: 5%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+#sliderContainer {
+  display: flex;
+  position: relative;
+  flex-direction: row;
+  border: 1px solid blue;
+}
+
+#controls input {
+  position: relative;
+  overflow: hidden;
+}
