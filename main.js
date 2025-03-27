@@ -23,8 +23,6 @@ async function mySetup(palette) {
   });
   document.body.appendChild(sv.pApp.canvas);
 
-  const spinnyBG = await Assets.load("/assets/DEMO.png");
-
   const { vertex, fragment } = await loadShaders();
 
   let totalTriangles = 1;
@@ -87,14 +85,10 @@ async function mySetup(palette) {
   const shader = Shader.from({
     gl,
     resources: {
-      myTexture: spinnyBG.source,
-      uSampler: spinnyBG.source.style,
       waveUniforms: {
-        mouseVelocity: { value: 0.5, type: "f32" },
         slider0: { value: 1.0, type: "f32" },
         slider1: { value: 1.0, type: "f32" },
         slider2: { value: 1.0, type: "f32" },
-        // mousePos: { value: sv.mousePos, type: "vec2<f32>" },
         time: { value: sv.pApp.ticker.lastTime, type: "f32" },
         col1: {
           value: palette[0].map((value) => value / 255),
@@ -129,13 +123,7 @@ async function mySetup(palette) {
     const time = sv.pApp.ticker.lastTime * 0.01;
     sv.triangleMesh.shader.resources.waveUniforms.uniforms.time = time;
 
-    draw(
-      instancePositionBuffer,
-      alphaBuffer,
-      sv.triangleMesh,
-      totalTriangles,
-      triangles
-    );
+    draw(instancePositionBuffer, alphaBuffer, totalTriangles);
   });
 }
 

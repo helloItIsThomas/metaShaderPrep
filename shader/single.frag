@@ -4,7 +4,6 @@ in vec2 vUV;
 in float vAlpha;
 // in float vIndex;
 
-uniform sampler2D myTexture;
 uniform vec3 col1;
 uniform vec3 col2;
 uniform vec3 col3;
@@ -12,7 +11,6 @@ uniform float slider0;
 uniform float slider1;
 uniform float slider2;
 uniform float time;
-uniform float mouseVelocity;
 
 void main() {
 
@@ -40,5 +38,3 @@ void main() {
 
     gl_FragColor = vec4(myOutputColor, 1.0);
 }
-
-// 
