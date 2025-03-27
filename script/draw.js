@@ -25,7 +25,7 @@ export function draw(instancePositionBuffer, alphaBuffer, totalTriangles) {
         Math.pow(mousePosVec.y - trianglePosVec.y, 2)
     );
 
-    alphaData[i] = 1 - distance / (sv.pApp.screen.width * 0.1);
+    alphaData[i] = 1 - distance / (sv.sWidth * 0.1);
   }
 
   instancePositionBuffer.update();

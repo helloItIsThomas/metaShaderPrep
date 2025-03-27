@@ -9,21 +9,28 @@ import {
   Shader,
 } from "pixi.js";
 import { sv } from "./script/variables.js";
-import { loadShaders } from "./script/loadShaders.js";
+import { loadShadersVanilla } from "./script/loadShaders.js";
+import { createProgram } from "./script/createProgram.js";
 import { draw } from "./script/draw.js";
 
 async function mySetup(palette) {
-  sv.pApp = new Application();
+  sv.sWidth = window.innerWidth;
+  sv.sHeight = window.innerHeight;
+  sv.canvas = document.getElementById("canvas");
+  sv.canvas.width = sv.sWidth;
+  sv.canvas.height = sv.sHeight;
+  document.body.appendChild(sv.canvas);
+  sv.gl = sv.canvas.getContext("webgl2");
+  if (!sv.gl) {
+    console.error("WebGL2 not supported");
+    return;
+  }
 
-  await sv.pApp.init({
-    width: window.innerWidth,
-    height: window.innerHeight,
-    backgroundColor: 0x1099bb,
-    resolution: 3,
-  });
-  document.body.appendChild(sv.pApp.canvas);
+  const { vertex, fragment } = await loadShadersVanilla();
 
-  const { vertex, fragment } = await loadShaders();
+  const program = createProgram(vertex, fragment);
+
+  console.log(program);
 
   let totalTriangles = 1;
 
@@ -42,14 +49,14 @@ async function mySetup(palette) {
 
   for (let i = 0; i < totalTriangles; i++) {
     triangles[i] = {
-      x: sv.pApp.screen.width * 0.0,
-      y: sv.pApp.screen.height * 0.0,
+      x: sv.sWidth * 0.0,
+      y: sv.sHeight * 0.0,
       speed: 1 + Math.random() * 2,
     };
   }
 
-  const cellW = sv.pApp.screen.width;
-  const cellH = sv.pApp.screen.height;
+  const cellW = sv.sWidth;
+  const cellH = sv.sHeight;
   const geometry = new Geometry({
     topology: "triangle-strip",
     instanceCount: totalTriangles,
@@ -82,49 +89,48 @@ async function mySetup(palette) {
 
   const gl = { vertex, fragment };
 
-  const shader = Shader.from({
-    gl,
-    resources: {
-      waveUniforms: {
-        slider0: { value: 1.0, type: "f32" },
-        slider1: { value: 1.0, type: "f32" },
-        slider2: { value: 1.0, type: "f32" },
-        time: { value: sv.pApp.ticker.lastTime, type: "f32" },
-        col1: {
-          value: palette[0].map((value) => value / 255),
-          type: "vec3<f32>",
-        },
-        col2: {
-          value: palette[1].map((value) => value / 255),
-          type: "vec3<f32>",
-        },
-        col3: {
-          value: palette[2].map((value) => value / 255),
-          type: "vec3<f32>",
-        },
-      },
-    },
-  });
+  // const shader = Shader.from({
+  // gl,
+  // resources: {
+  // waveUniforms: {
+  // slider0: { value: 1.0, type: "f32" },
+  // slider1: { value: 1.0, type: "f32" },
+  // slider2: { value: 1.0, type: "f32" },
+  // time: { value: sv.pApp.ticker.lastTime, type: "f32" },
+  // col1: {
+  // value: palette[0].map((value) => value / 255),
+  // type: "vec3<f32>",
+  // },
+  // col2: {
+  // value: palette[1].map((value) => value / 255),
+  // type: "vec3<f32>",
+  // },
+  // col3: {
+  // value: palette[2].map((value) => value / 255),
+  // type: "vec3<f32>",
+  // },
+  // },
+  // },
+  // });
 
-  sv.triangleMesh = new Mesh({
-    geometry,
-    shader,
-  });
+  // sv.triangleMesh = new Mesh({
+  // geometry,
+  // shader,
+  // });
 
   const container = new Container();
-  container.width = sv.pApp.screen.width;
-  container.height = sv.pApp.screen.height;
-  container.filterArea = sv.pApp.screen;
+  container.width = sv.sWidth;
+  container.height = sv.sHeight;
+  container.filterArea = { width: sv.sWidth, height: sv.sHeight };
 
-  container.addChild(sv.triangleMesh);
-  sv.pApp.stage.addChild(container);
+  // container.addChild(sv.triangleMesh);
 
-  sv.pApp.ticker.add(() => {
-    const time = sv.pApp.ticker.lastTime * 0.01;
-    sv.triangleMesh.shader.resources.waveUniforms.uniforms.time = time;
+  // sv.pApp.ticker.add(() => {
+  // const time = sv.pApp.ticker.lastTime * 0.01;
+  // sv.triangleMesh.shader.resources.waveUniforms.uniforms.time = time;
 
-    draw(instancePositionBuffer, alphaBuffer, totalTriangles);
-  });
+  // draw(instancePositionBuffer, alphaBuffer, totalTriangles);
+  // });
 }
 
 const sliders = document.querySelectorAll(".slider");
